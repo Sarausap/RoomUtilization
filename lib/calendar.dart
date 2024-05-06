@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:room_utilization/model/schedule.dart';
+import 'package:room_utilization/model/semester.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class CalendarWidget extends StatefulWidget {
@@ -10,96 +12,188 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SfCalendar(
-        view: CalendarView.week,
-        dataSource: MeetingDataSource(_getDataSource()),
-        monthViewSettings: const MonthViewSettings(
-          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
-        ),
+      body: FutureBuilder<MeetingDataSource>(
+        future: _fetchMeetings(1),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error fetching data'));
+          } else {
+            return SfCalendar(
+              view: CalendarView.week,
+              dataSource: snapshot.data,
+              monthViewSettings: const MonthViewSettings(
+                appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+              ),
+              timeSlotViewSettings:
+                  TimeSlotViewSettings(startHour: 6, endHour: 20),
+            );
+          }
+        },
       ),
     );
   }
 
-  List<Meeting> _getDataSource() {
-    final List<Meeting> meetings = <Meeting>[];
-    final DateTime today = DateTime.now();
-    final DateTime startTime = DateTime(today.year, today.month, today.day, 9);
-    final DateTime endTime = startTime.add(const Duration(hours: 2));
-    meetings.add(Meeting(
-      'Conference',
-      startTime,
-      endTime,
-      const Color(0xFF0F8644),
-      false,
-    ));
-    return meetings;
+  Future<MeetingDataSource> _fetchMeetings(int room_id) async {
+    print("fetching data");
+    List<Meeting> appointments = <Meeting>[];
+    String semester_id = "OeuPodVAHxh2AKNQWU77";
+    final Semester? semester = await Semester.getSemesterbyID(semester_id);
+    final List<Schedule_Details> scheduleDetails =
+        await Schedule_Details.readScheduleDetails(semester_id);
+
+    if (semester != null) {
+      print(
+          "Semester details: ${semester.start_date.toDate()} - ${semester.end_date.toDate()}");
+      print("Schedule details count: ${scheduleDetails.length}");
+      for (var detail in scheduleDetails) {
+        print("Processing detail: ${detail.class_name}");
+        print("Processing detail: ${detail.course}");
+        print("Processing detail: ${detail.instructor}");
+        print("Processing detail: ${detail.start_time}");
+        print("Processing detail: ${detail.end_time}");
+
+        String recurrenceRule = 'FREQ=WEEKLY;BYDAY=';
+        for (String day in detail.weekdays) {
+          switch (day.toLowerCase()) {
+            case 'monday':
+              recurrenceRule += 'MO';
+              break;
+            case 'tuesday':
+              recurrenceRule += 'TU';
+              break;
+            case 'wednesday':
+              recurrenceRule += 'WE';
+              break;
+            case 'thursday':
+              recurrenceRule += 'TH';
+              break;
+            case 'friday':
+              recurrenceRule += 'FR';
+              break;
+            default:
+              print("Invalid weekday: ${day}");
+              continue;
+          }
+        }
+        int daysCount = countDays(semester.start_date.toDate(),
+            semester.end_date.toDate(), detail.weekdays);
+        appointments.add(Meeting(
+          eventName: detail.class_name,
+          from: DateTime(
+              semester.start_date.toDate().year,
+              semester.start_date.toDate().month,
+              semester.start_date.toDate().day,
+              detail.start_time),
+          to: DateTime(
+              semester.start_date.toDate().year,
+              semester.start_date.toDate().month,
+              semester.start_date.toDate().day,
+              detail.end_time),
+          background: Colors.green,
+          recurrenceRule: '$recurrenceRule;COUNT=$daysCount',
+        ));
+      }
+    } else {
+      print("Semester not found");
+    }
+
+    return MeetingDataSource(appointments);
   }
 }
 
-/// An object to set the appointment collection data source to calendar, which
-/// used to map the custom appointment data to the calendar appointment, and
-/// allows to add, remove or reset the appointment collection.
+int countDays(DateTime startDate, DateTime endDate, List<String> days) {
+  int count = 0;
+  DateTime currentDate = startDate;
+
+  Set<int> targetWeekdays = days.map((day) {
+    switch (day.toLowerCase()) {
+      case 'monday':
+        return DateTime.monday;
+      case 'tuesday':
+        return DateTime.tuesday;
+      case 'wednesday':
+        return DateTime.wednesday;
+      case 'thursday':
+        return DateTime.thursday;
+      case 'friday':
+        return DateTime.friday;
+      case 'saturday':
+        return DateTime.saturday;
+      case 'sunday':
+        return DateTime.sunday;
+      default:
+        throw ArgumentError('Invalid weekday: $day');
+    }
+  }).toSet();
+
+  while (
+      currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
+    if (targetWeekdays.contains(currentDate.weekday)) {
+      count++;
+    }
+    currentDate = currentDate.add(Duration(days: 1));
+  }
+  print(count);
+  return count;
+}
+
+class _AppointmentDataSource extends CalendarDataSource {
+  _AppointmentDataSource(List<Appointment> source) {
+    appointments = source;
+  }
+}
+
 class MeetingDataSource extends CalendarDataSource {
-  /// Creates a meeting data source, which used to set the appointment
-  /// collection to the calendar
   MeetingDataSource(List<Meeting> source) {
     appointments = source;
   }
 
   @override
   DateTime getStartTime(int index) {
-    return _getMeetingData(index).from;
+    return appointments![index].from;
   }
 
   @override
   DateTime getEndTime(int index) {
-    return _getMeetingData(index).to;
-  }
-
-  @override
-  String getSubject(int index) {
-    return _getMeetingData(index).eventName;
-  }
-
-  @override
-  Color getColor(int index) {
-    return _getMeetingData(index).background;
+    return appointments![index].to;
   }
 
   @override
   bool isAllDay(int index) {
-    return _getMeetingData(index).isAllDay;
+    return appointments![index].isAllDay;
   }
 
-  Meeting _getMeetingData(int index) {
-    final dynamic meeting = appointments![index];
-    late final Meeting meetingData;
-    if (meeting is Meeting) {
-      meetingData = meeting;
-    }
+  @override
+  String getSubject(int index) {
+    return appointments![index].eventName;
+  }
 
-    return meetingData;
+  @override
+  Color getColor(int index) {
+    return appointments![index].background;
+  }
+
+  @override
+  String getRecurrenceRule(int index) {
+    return appointments![index].recurrenceRule;
   }
 }
 
-/// Custom business object class which contains properties to hold the detailed
-/// information about the event data which will be rendered in calendar.
 class Meeting {
-  /// Creates a meeting class with required details.
-  Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay);
+  Meeting(
+      {this.eventName = '',
+      required this.from,
+      required this.to,
+      required this.background,
+      this.isAllDay = false,
+      this.recurrenceRule});
 
-  /// Event name which is equivalent to subject property of [Appointment].
   String eventName;
-
-  /// From which is equivalent to start time property of [Appointment].
   DateTime from;
-
-  /// To which is equivalent to end time property of [Appointment].
   DateTime to;
-
-  /// Background which is equivalent to color property of [Appointment].
   Color background;
-
-  /// IsAllDay which is equivalent to isAllDay property of [Appointment].
   bool isAllDay;
+  String? recurrenceRule;
 }
