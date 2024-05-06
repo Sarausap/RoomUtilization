@@ -12,7 +12,48 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     return Scaffold(
       body: SfCalendar(
         view: CalendarView.week,
+
+        //drag and drop
+        allowDragAndDrop: true,
+        
+        //starting hour calendar settings
+        timeSlotViewSettings: TimeSlotViewSettings(
+        startHour: 7,
+        endHour: 20,
+        timeIntervalHeight: 39,
+        ),
+  
+        //header design
+        headerStyle: CalendarHeaderStyle(
+          textAlign: TextAlign.center,
+          backgroundColor: Color.fromARGB(255, 30, 23, 104), 
+          textStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold, 
+            letterSpacing: 5,
+            fontSize: 25,
+          )
+        ),
+
+        viewHeaderStyle: ViewHeaderStyle(
+          backgroundColor: Color.fromARGB(255, 237, 235, 255), 
+          dateTextStyle: TextStyle(
+            
+            // color: Colors.white,
+          ),
+          dayTextStyle: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            // color: Colors.white,
+          ),
+        ),
+        
+        todayHighlightColor: Color.fromARGB(255, 30, 23, 104), 
+        
+        // 
+       
         dataSource: MeetingDataSource(_getDataSource()),
+        
         monthViewSettings: const MonthViewSettings(
           appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
         ),
