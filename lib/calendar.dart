@@ -27,10 +27,35 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                 appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
               ),
               timeSlotViewSettings:
-                  TimeSlotViewSettings(startHour: 6, endHour: 20),
-            );
-          }
-        },
+                  TimeSlotViewSettings(startHour: 6, endHour: 20,timeIntervalHeight: 39,),
+              headerStyle: CalendarHeaderStyle(
+                  textAlign: TextAlign.center,
+                  backgroundColor: Color.fromARGB(255, 30, 23, 104), 
+                  textStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold, 
+                    letterSpacing: 5,
+                    fontSize: 25,
+                  )
+                ),
+
+                viewHeaderStyle: ViewHeaderStyle(
+                  backgroundColor: Color.fromARGB(255, 237, 235, 255), 
+                  dateTextStyle: TextStyle(
+
+                    // color: Colors.white,
+                  ),
+                  dayTextStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    // color: Colors.white,
+                  ),
+                ),
+
+                todayHighlightColor: Color.fromARGB(255, 30, 23, 104), 
+                    );
+                  }
+                },
       ),
     );
   }
