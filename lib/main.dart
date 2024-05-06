@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
 import 'package:room_utilization/calendar.dart';
 
@@ -198,7 +199,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c1),
+                  Container(child: GestureDetector(child: Image.asset(c1))),
                 ],
               ),
             ),
@@ -208,7 +209,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c2),
+                  Container(child: GestureDetector(child: Image.asset(c2))),
                 ],
               ),
             ),
@@ -218,7 +219,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c3),
+                  Container(child: GestureDetector(child: Image.asset(c3))),
                 ],
               ),
             ),
@@ -228,7 +229,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c4),
+                  Container(child: GestureDetector(child: Image.asset(c4))),
                 ],
               ),
             ),
@@ -238,7 +239,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c5),
+                  Container(child: GestureDetector(child: Image.asset(c5))),
                 ],
               ),
             ),
@@ -248,7 +249,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c6),
+                  Container(child: GestureDetector(child: Image.asset(c6))),
                 ],
               ),
             ),
@@ -258,7 +259,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c7),
+                  Container(child: GestureDetector(child: Image.asset(c7))),
                 ],
               ),
             ),
@@ -268,7 +269,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c8),
+                  Container(child: GestureDetector(child: Image.asset(c8))),
                 ],
               ),
             ),
@@ -278,7 +279,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c9),
+                  Container(child: GestureDetector(child: Image.asset(c9))),
                 ],
               ),
             ),
@@ -288,7 +289,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c10),
+                  Container(child: GestureDetector(child: Image.asset(c10))),
                 ],
               ),
             ),
@@ -298,7 +299,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c11),
+                  Container(child: GestureDetector(child: Image.asset(c11))),
                 ],
               ),
             ),
@@ -308,7 +309,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c12),
+                  Container(child: GestureDetector(child: Image.asset(c12))),
                 ],
               ),
             ),
@@ -318,7 +319,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c13),
+                  Container(child: GestureDetector(child: Image.asset(c13))),
                 ],
               ),
             ),
@@ -328,7 +329,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c14),
+                  Container(child: GestureDetector(child: Image.asset(c14))),
                 ],
               ),
             ),
@@ -338,7 +339,7 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Image.asset(c15),
+                  Container(child: GestureDetector(child: Image.asset(c15))),
                 ],
               ),
             ),
