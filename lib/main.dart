@@ -1,16 +1,38 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
+import 'package:provider/provider.dart';
 import 'package:room_utilization/calendar.dart';
 import 'package:room_utilization/firebase_options.dart';
-import 'package:flutter/cupertino.dart';
-
+import 'package:room_utilization/model/semester.dart';
+import 'package:room_utilization/notifier.dart';
+import 'package:room_utilization/reservation_modal.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CalendarData(),
+      child: MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'Layout Grid Desktop Example',
+      debugShowCheckedModeBanner: false,
+      home: PietPainting(),
+    );
+  }
 }
 
 const cellRed = Color(0xffc73232);
@@ -20,10 +42,12 @@ const cellBlue = Color(0xff1553be);
 const background = Color.fromARGB(0, 36, 40, 48);
 
 class PietPainting extends StatefulWidget {
-  const PietPainting({Key? key}) : super(key: key);
+  final Function(String, String)? onRoomUpdated;
+
+  const PietPainting({Key? key, this.onRoomUpdated}) : super(key: key);
 
   @override
-  _PietPaintingState createState() => _PietPaintingState();
+  PietPaintingState createState() => PietPaintingState();
 }
 
 /////////////BACK UP OLD FORMAT DONT DELETE////////////////
@@ -40,7 +64,7 @@ class PietPainting extends StatefulWidget {
 
 ////////////END OF BACK UP ///////////////////////////////
 
-class _PietPaintingState extends State<PietPainting> {
+class PietPaintingState extends State<PietPainting> {
   String pathfloor = 'assets/images/cisc1stfloor.png';
   String pathfloor2 = 'assets/images/cisc2ndfloor.png';
 
@@ -61,7 +85,11 @@ class _PietPaintingState extends State<PietPainting> {
   String c14 = 'assets/images/cisc1stf/14.png';
   String c15 = 'assets/images/cisc1stf/15.png';
 
+  int currentFloor = 1;
+  String? _selectedValue;
+
   void SwitchFloor(int floor) {
+    currentFloor = floor;
     setState(() {
       if (floor == 1) {
         c1 = 'assets/images/cisc1stf/1.png';
@@ -104,29 +132,21 @@ class _PietPaintingState extends State<PietPainting> {
     final screenSize = MediaQuery.of(context).size;
 
     final columnSizes = screenSize.width > 600
-        ? [3.0.fr,3.0.fr, 3.0.fr, 3.7.fr, 3.fr, 3.fr]
+        ? [3.0.fr, 3.0.fr, 3.0.fr, 3.7.fr, 3.fr, 3.fr]
         : [10.0.fr, 10.0.fr];
     final rowSizes = screenSize.width > 600
-        ? [ 1.fr, 
-            3.0.fr, 
-            3.0.fr, 
-            3.0.fr, 
-            3.0.fr, 
-            3.0.fr, 
-            1.fr, 
-            1.fr]
-            
+        ? [1.fr, 3.0.fr, 3.0.fr, 3.0.fr, 3.0.fr, 3.0.fr, 1.fr, 1.fr]
         : [.5.fr, 1.0.fr, 1.0.fr, .5.fr, 1.0.fr, .5.fr];
     final areas = screenSize.width > 600
         ? '''
-        hd hd hd hd hd hd 
+        hd hd hd na se se
         c1 c2 c3 ca ca ca
         c4 c5 c6 ca ca ca
         c7 c8 c9 ca ca ca
         c10 c11 c12 ca ca ca
         c13 c14 c15 ca ca ca
-        fl fl fl bw bw bw 
-        fo fo fo fo fo fo 
+        fl fl fl bw bw bw
+        fo fo fo fo fo fo
         '''
         : '''
         hd hd
@@ -136,6 +156,19 @@ class _PietPaintingState extends State<PietPainting> {
         ca ca
         fo fo
         ''';
+
+    Future<Semester?> fetchsemester() async {
+      return await Semester.getSemester();
+    }
+
+    void showModalExample(BuildContext context) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ReservationModal();
+        },
+      );
+    }
 
     return Container(
       color: background,
@@ -147,17 +180,74 @@ class _PietPaintingState extends State<PietPainting> {
         rowSizes: rowSizes,
         children: [
           gridArea('ca').containing(CalendarWidget()),
-          // gridArea('hd').containing(Container(
-          //   color: Colors.white,
-          //   child: Container(
-          //     alignment: AlignmentDirectional.center,
-          //     child: Text(
-          //       "CISC 2nd Floor",
-          //       style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-          //     ),
-          //   ),
-          // )),
           gridArea('hd').containing(Container(color: Colors.white)),
+          gridArea('na').containing(Container(
+              width: 200,
+              color: Colors.white,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  showModalExample(context);
+                },
+                icon: Icon(Icons.add),
+                label: Text('New Reservation'),
+              ))),
+          gridArea('se').containing(Container(
+              width: double.infinity,
+              child: Material(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                      width: 300,
+                      child: FutureBuilder<List<Semester?>>(
+                        future: Semester.fetchAllSemesters(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<List<Semester?>> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.hasData &&
+                              snapshot.data != null) {
+                            String? _selectedValue =
+                                snapshot.data![0]?.semester_name ?? '';
+                            return DropdownButton<String>(
+                              value: _selectedValue,
+                              icon: const Icon(Icons.arrow_drop_down),
+                              onChanged: (String? newValue) {
+                                print(newValue);
+                                setState(() {
+                                  _selectedValue = newValue;
+                                });
+                                print(_selectedValue);
+                              },
+                              items: snapshot.data!
+                                  .map<DropdownMenuItem<String>>(
+                                      (Semester? semester) {
+                                    // Check if semester is not null before accessing properties
+                                    if (semester != null) {
+                                      return DropdownMenuItem<String>(
+                                        value: semester.semester_name,
+                                        child: Text(semester.semester_name),
+                                      );
+                                    }
+                                    return DropdownMenuItem(
+                                        child: Text(
+                                            '')); // Return an empty item if semester is null
+                                  })
+                                  .where((item) => item.value!
+                                      .isNotEmpty) // Filter out any empty items
+                                  .toList(),
+                            );
+                          } else {
+                            return Text(
+                                'No semesters found.'); // Handle case where no data is returned
+                          }
+                        },
+                      )),
+                ],
+              )))),
           gridArea('fl').containing(Container(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -166,10 +256,8 @@ class _PietPaintingState extends State<PietPainting> {
                   margin: EdgeInsets.only(top: 5),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                    
-                    foregroundColor: Color.fromARGB(255, 255, 255, 255),
-                    backgroundColor: Color.fromARGB(255, 30, 23, 104), 
-                    
+                      foregroundColor: Color.fromARGB(255, 255, 255, 255),
+                      backgroundColor: Color.fromARGB(255, 30, 23, 104),
                     ),
                     onPressed: () {
                       SwitchFloor(1);
@@ -177,27 +265,25 @@ class _PietPaintingState extends State<PietPainting> {
                     child: Text("1st Floor"),
                   ),
                 ),
-                
                 Container(
                   margin: EdgeInsets.only(top: 5),
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                    
-                    foregroundColor: Color.fromARGB(255, 255, 255, 255),
-                    backgroundColor: Color.fromARGB(255, 30, 23, 104), 
-
+                      foregroundColor: Color.fromARGB(255, 255, 255, 255),
+                      backgroundColor: Color.fromARGB(255, 30, 23, 104),
                     ),
                     onPressed: () {
                       SwitchFloor(2);
                     },
-                    child: Text("2nd Floor",),
+                    child: Text(
+                      "2nd Floor",
+                    ),
                   ),
                 ),
-
               ],
             ),
           )),
-          
+
           // NEW
           gridArea('c1').containing(
             Center(
@@ -214,7 +300,17 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c2))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c2),
+                    onTap: () => currentFloor == 1
+                        ? Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC CONFERENCE ROOM", "OeuPodVAHxh2AKNQWU77")
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC EVENT ROOM", "OeuPodVAHxh2AKNQWU77"),
+                  ))
                 ],
               ),
             ),
@@ -224,7 +320,11 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c3))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c3),
+                    onTap: () {},
+                  )),
                 ],
               ),
             ),
@@ -234,7 +334,17 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c4))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c4),
+                    onTap: () => currentFloor == 1
+                        ? Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 11", "OeuPodVAHxh2AKNQWU77")
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 23", "OeuPodVAHxh2AKNQWU77"),
+                  )),
                 ],
               ),
             ),
@@ -254,7 +364,17 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c6))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c6),
+                    onTap: () => currentFloor == 1
+                        ? Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LEC 3", "OeuPodVAHxh2AKNQWU77")
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 26", "OeuPodVAHxh2AKNQWU77"),
+                  )),
                 ],
               ),
             ),
@@ -264,7 +384,15 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c7))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c7),
+                    onTap: () => currentFloor == 1
+                        ? Null
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 22", "OeuPodVAHxh2AKNQWU77"),
+                  )),
                 ],
               ),
             ),
@@ -284,7 +412,17 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c9))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c9),
+                    onTap: () => currentFloor == 1
+                        ? Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LEC 2", "OeuPodVAHxh2AKNQWU77")
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 25", "OeuPodVAHxh2AKNQWU77"),
+                  )),
                 ],
               ),
             ),
@@ -294,7 +432,15 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c10))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c10),
+                    onTap: () => currentFloor == 2
+                        ? Null
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 21", "OeuPodVAHxh2AKNQWU77"),
+                  )),
                 ],
               ),
             ),
@@ -314,7 +460,15 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c12))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c12),
+                    onTap: () => currentFloor == 1
+                        ? Null
+                        : Provider.of<CalendarData>(context, listen: false)
+                            .updateCalendar(
+                                "CISC LAB 24", "OeuPodVAHxh2AKNQWU77"),
+                  )),
                 ],
               ),
             ),
@@ -324,7 +478,10 @@ class _PietPaintingState extends State<PietPainting> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Container(child: GestureDetector(child: Image.asset(c13))),
+                  Container(
+                      child: GestureDetector(
+                    child: Image.asset(c13),
+                  )),
                 ],
               ),
             ),
@@ -349,29 +506,10 @@ class _PietPaintingState extends State<PietPainting> {
               ),
             ),
           ),
-
-          //new
-
-
-          //END OF NEW
-
           gridArea('bw').containing(Container(color: Colors.white)),
           gridArea('fo').containing(Container(color: Colors.white)),
         ],
       ),
-    );
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Layout Grid Desktop Example',
-      debugShowCheckedModeBanner: false,
-      home: const PietPainting(),
     );
   }
 }

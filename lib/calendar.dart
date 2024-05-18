@@ -1,19 +1,22 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:room_utilization/model/reservations.dart';
 import 'package:room_utilization/model/schedule.dart';
 import 'package:room_utilization/model/semester.dart';
+import 'package:room_utilization/notifier.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-class CalendarWidget extends StatefulWidget {
-  @override
-  _CalendarWidgetState createState() => _CalendarWidgetState();
-}
-
-class _CalendarWidgetState extends State<CalendarWidget> {
+class CalendarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    var provider = Provider.of<CalendarData>(context);
+    String roomId = provider.newroomId;
+    String semesterId = provider.newsemesterId;
     return Scaffold(
       body: FutureBuilder<MeetingDataSource>(
-        future: _fetchMeetings(1),
+        future: _fetchMeetings(roomId, semesterId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -26,48 +29,80 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               monthViewSettings: const MonthViewSettings(
                 appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
               ),
-              timeSlotViewSettings:
-                  TimeSlotViewSettings(startHour: 6, endHour: 20,timeIntervalHeight: 39,),
+              timeSlotViewSettings: TimeSlotViewSettings(
+                startHour: 6,
+                endHour: 20,
+                timeIntervalHeight: 39,
+              ),
               headerStyle: CalendarHeaderStyle(
                   textAlign: TextAlign.center,
-                  backgroundColor: Color.fromARGB(255, 30, 23, 104), 
+                  backgroundColor: Color.fromARGB(255, 30, 23, 104),
                   textStyle: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold, 
+                    fontWeight: FontWeight.bold,
                     letterSpacing: 5,
                     fontSize: 25,
-                  )
+                  )),
+              viewHeaderStyle: ViewHeaderStyle(
+                backgroundColor: Color.fromARGB(255, 237, 235, 255),
+                dateTextStyle: TextStyle(),
+                dayTextStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
-
-                viewHeaderStyle: ViewHeaderStyle(
-                  backgroundColor: Color.fromARGB(255, 237, 235, 255), 
-                  dateTextStyle: TextStyle(
-
-                    // color: Colors.white,
-                  ),
-                  dayTextStyle: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    // color: Colors.white,
-                  ),
-                ),
-
-                todayHighlightColor: Color.fromARGB(255, 30, 23, 104), 
-                    );
-                  }
-                },
+              ),
+              todayHighlightColor: Color.fromARGB(255, 30, 23, 104),
+            );
+          }
+        },
       ),
     );
   }
 
-  Future<MeetingDataSource> _fetchMeetings(int room_id) async {
-    print("fetching data");
-    List<Meeting> appointments = <Meeting>[];
-    String semester_id = "OeuPodVAHxh2AKNQWU77";
-    final Semester? semester = await Semester.getSemesterbyID(semester_id);
-    final List<Schedule_Details> scheduleDetails =
-        await Schedule_Details.readScheduleDetails(semester_id);
+  Color getRandomLightColor() {
+    var rng = Random();
+    return Color.fromRGBO(
+      rng.nextInt(201),
+      rng.nextInt(201),
+      rng.nextInt(201),
+      1,
+    );
+  }
 
+  Future<MeetingDataSource> _fetchMeetings(
+      String roomId, String semesterId) async {
+    print("fetching data");
+    print(roomId);
+    print(semesterId);
+    List<Meeting> appointments = <Meeting>[];
+
+    final Semester? semester = await Semester.getSemesterbyID(semesterId);
+    final List<Schedule_Details> scheduleDetails =
+        await Schedule_Details.readScheduleDetails(semesterId, roomId);
+    final List<Reservation> reservationDetails =
+        await Reservation.readReservationDetails(roomId);
+
+    // Reservation
+    print("reservation_details: ${reservationDetails}");
+    for (var detail in reservationDetails) {
+      print("reserved by: ${detail.name}");
+      print("Processing detail: ${detail.date.year}");
+      print("Processing detail: ${detail.date.month}");
+      print("Processing detail: ${detail.date.day}");
+      print("Processing detail: ${detail.start_time}");
+      print("Processing detail: ${detail.end_time}");
+      appointments.add(Meeting(
+        eventName: "Reserved By:${detail.name}",
+        from: DateTime(detail.date.year, detail.date.month, detail.date.day,
+            detail.start_time),
+        to: DateTime(detail.date.year, detail.date.month, detail.date.day,
+            detail.end_time),
+        background: getRandomLightColor(),
+        recurrenceRule: 'FREQ=DAILY;INTERVAL=1;COUNT=1',
+      ));
+    }
+
+    // Schedules
     if (semester != null) {
       print(
           "Semester details: ${semester.start_date.toDate()} - ${semester.end_date.toDate()}");
@@ -105,7 +140,11 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         int daysCount = countDays(semester.start_date.toDate(),
             semester.end_date.toDate(), detail.weekdays);
         appointments.add(Meeting(
-          eventName: detail.class_name,
+          eventName: detail.class_name +
+              "\n" +
+              detail.course +
+              "\n" +
+              detail.instructor,
           from: DateTime(
               semester.start_date.toDate().year,
               semester.start_date.toDate().month,
@@ -116,7 +155,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               semester.start_date.toDate().month,
               semester.start_date.toDate().day,
               detail.end_time),
-          background: Colors.green,
+          background: getRandomLightColor(),
           recurrenceRule: '$recurrenceRule;COUNT=$daysCount',
         ));
       }
