@@ -1,17 +1,26 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:room_utilization/calendar.dart';
 import 'package:room_utilization/firebase_options.dart';
 import 'package:room_utilization/model/map.dart';
+import 'package:room_utilization/model/semester.dart';
+import 'package:room_utilization/notifier.dart';
 import 'package:room_utilization/pending.dart';
 import 'package:room_utilization/reservation_modal.dart';
+import 'package:room_utilization/theme.dart';
 import 'package:room_utilization/ui_components.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider(create: (context) => CalendarData())],
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -30,17 +39,21 @@ class Map_Display extends StatefulWidget {
 
 class _Map_DisplayState extends State<Map_Display> {
   late String base64 = '';
+  late String currentSemester = '';
+  late int currentFloor = 1;
+
   @override
   void initState() {
     super.initState();
-    _fetchLatestMap();
+    _fetchLatestMap(1);
+    getLatestSemester();
   }
 
-  void _fetchLatestMap() async {
-    // Assuming you want to fetch the latest map for floor 1
-    Map_Detail? latestMap = await Map_Detail.getLatestMap(1);
+  void _fetchLatestMap(int Floor) async {
+    Map_Detail? latestMap = await Map_Detail.getLatestMap(Floor);
     if (latestMap != null) {
       setState(() {
+        currentFloor = Floor;
         base64 = latestMap.map_image;
       });
     }
@@ -64,6 +77,20 @@ class _Map_DisplayState extends State<Map_Display> {
     );
   }
 
+  Future<void> getLatestSemester() async {
+    Semester? latestSemester = await Semester.fetchLatestSemester();
+    if (latestSemester != null) {
+      setState(() {
+        print("print semester${latestSemester.semester_name}");
+        currentSemester = latestSemester.id!;
+      });
+      Provider.of<CalendarData>(context, listen: false)
+          .updateSemester(currentSemester!);
+    } else {
+      print("No semester found.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,12 +98,62 @@ class _Map_DisplayState extends State<Map_Display> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Expanded(child: Image.memory(base64Decode(base64))),
+          Expanded(
+              child: Container(
+                  color: bgColor,
+                  child: Column(children: [
+                    Text("Current Floor : ${currentFloor}"),
+                    Image.memory(base64Decode(base64))
+                  ]))),
           Container(
-              width: 400,
+            color: bgColor,
+            width: 100,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                    height: 75,
+                    width: 75,
+                    decoration: BoxDecoration(
+                        color: primaryColor, shape: BoxShape.circle),
+                    child: TextButton(
+                      onPressed: () {
+                        print("button 1 clicked");
+                        setState(() {
+                          _fetchLatestMap(1);
+                        });
+                      },
+                      child: Text(
+                        "1",
+                        style: TextStyle(fontSize: 24, color: Colors.white),
+                      ),
+                    )),
+                Container(height: 50),
+                Container(
+                    height: 75,
+                    width: 75,
+                    decoration: BoxDecoration(
+                        color: primaryColor, shape: BoxShape.circle),
+                    child: TextButton(
+                      onPressed: () {
+                        print("button 2 clicked");
+                        setState(() {
+                          _fetchLatestMap(2);
+                        });
+                      },
+                      child: Text(
+                        "2",
+                        style: TextStyle(fontSize: 24, color: Colors.white),
+                      ),
+                    )),
+              ],
+            ),
+          ),
+          Container(
+              width: 500,
               child: Expanded(
                   child: Container(
-                      color: Colors.white,
+                      color: outlineColor,
                       width: 500,
                       child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -144,13 +221,141 @@ class _Map_DisplayState extends State<Map_Display> {
                                   ),
                                 ),
                               ),
-                            ])
+                            ]),
+                            Expanded(child: DynamicList())
                           ])))),
         ],
       ),
     ));
   }
 }
+
+class DynamicList extends StatefulWidget {
+  @override
+  _DynamicListState createState() => _DynamicListState();
+}
+
+class _DynamicListState extends State<DynamicList> {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('rooms').snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) return CircularProgressIndicator();
+        return ListView.builder(
+          padding: EdgeInsetsDirectional.only(top: 20, bottom: 20),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            DocumentSnapshot document = snapshot.data!.docs[index];
+            return Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  hoverColor: secondaryColor,
+                  minVerticalPadding: 10,
+                  title: Text(
+                    document['room_name'],
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontFamily: 'Satoshi',
+                    ),
+                  ),
+                  onTap: () {
+                    print('Item tapped: ${document.id}');
+                    Provider.of<CalendarData>(context, listen: false)
+                        .updateCalendar(document['room_id']);
+                    showCalendarModal(
+                      context,
+                      document['room_name'],
+                    );
+                  },
+                ));
+          },
+        );
+      },
+    );
+  }
+}
+
+void showCalendarModal(BuildContext context, String roomName) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(roomName),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: FutureBuilder<List<Semester?>>(
+                    future: Semester.fetchAllSemesters(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<Semester?>> snapshot) {
+                      String currentSemester = snapshot.data![0]?.id ?? '';
+                      return Material(
+                        child: DropdownButton<String>(
+                          underline: Container(),
+                          hint: Text(
+                            'Select a semester',
+                            style: TextStyle(fontFamily: 'Satoshi'),
+                          ),
+                          value: Provider.of<CalendarData>(context).semesterId,
+                          onChanged: (String? newValue) {
+                            print("New sem:${newValue}");
+                            currentSemester = newValue!;
+                            Provider.of<CalendarData>(context, listen: false)
+                                .updateSemester(newValue!);
+                          },
+                          items: snapshot.data!
+                              .where((semester) => semester != null)
+                              .map((Semester? semester) =>
+                                  DropdownMenuItem<String>(
+                                    value: semester?.id ?? '',
+                                    child: Text(semester?.semester_name ?? '',
+                                        style:
+                                            TextStyle(fontFamily: 'Satoshi')),
+                                  ))
+                              .toList(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Container(
+                width: 1200,
+                height: 800,
+                child: CalendarWidget(),
+              )
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Close'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
 
 
