@@ -708,40 +708,46 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
               }),
         ),
         Flexible(
-          child: ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime.now().add(Duration(days: 365 * 100)),
-              );
-              if (picked != null && picked != DateTime.now()) print(picked);
-              setState(() {
-                formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
-                date = picked;
-              });
-            },
-            child: Text(formattedDate),
-          ),
+          child: Column(children: [
+            Text("Start Date"),
+            ElevatedButton(
+              onPressed: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now().add(Duration(days: 365 * 100)),
+                );
+                if (picked != null && picked != DateTime.now()) print(picked);
+                setState(() {
+                  formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
+                  date = picked;
+                });
+              },
+              child: Text(formattedDate),
+            )
+          ]),
         ),
         Flexible(
-          child: ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime.now().add(Duration(days: 365 * 100)),
-              );
-              if (picked != null && picked != DateTime.now()) print(picked);
-              setState(() {
-                formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
-                endDate = picked;
-              });
-            },
-            child: Text(formattedDate),
-          ),
+          child: Column(children: [
+            Text("End Date"),
+            ElevatedButton(
+              onPressed: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now().add(Duration(days: 365 * 100)),
+                );
+                if (picked != null && picked != DateTime.now()) print(picked);
+                setState(() {
+                  formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
+                  endDate = picked;
+                });
+              },
+              child: Text(formattedDate),
+            )
+          ]),
         ),
       ]),
       Row(
@@ -873,72 +879,77 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
               }),
         ),
         Flexible(
-          child: ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime.now().add(Duration(days: 365 * 100)),
-              );
-              if (picked != null && picked != DateTime.now()) print(picked);
-              setState(() {
-                formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
-                date = picked;
-              });
-            },
-            child: Text(formattedDate),
-          ),
-        ),
-        Flexible(
-          child: ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime.now().add(Duration(days: 365 * 100)),
-              );
-              if (picked != null && picked != DateTime.now()) print(picked);
-              setState(() {
-                formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
-                endDate = picked;
-              });
-            },
-            child: Text(formattedDate),
-          ),
-        ),
-        Flexible(
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              hint: Text(startTimeMessage),
-              onChanged: (int? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    startTimeMessage = listOfTuples.firstWhere(
-                        (item) => item['value'] == newValue)['name'];
-                    startTime = newValue;
-                    endlistOfTuplesNotifier.value = [];
-                    if (endTimeMessage != "Select End Time") {
-                      if (startTime > endTime!) {
-                        endTime = null;
-                        endTimeMessage = "Select End Time";
-                      }
-                    }
-                    addEndStartMap();
-                  });
-                }
-              },
-              items: listOfTuples.map((item) {
-                int hour = int.parse(item['value'].toString());
-                return DropdownMenuItem<int>(
-                  value: hour,
-                  child: Text('${item['name']}'),
+          child: Column(children: [
+            Text("Start Date"),
+            ElevatedButton(
+              onPressed: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now().add(Duration(days: 365 * 100)),
                 );
-              }).toList(),
-            ),
-          ),
+                if (picked != null && picked != DateTime.now()) print(picked);
+                setState(() {
+                  formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
+                  date = picked;
+                });
+              },
+              child: Text(formattedDate),
+            )
+          ]),
         ),
+        Flexible(
+          child: Column(children: [
+            Text("End Date"),
+            ElevatedButton(
+              onPressed: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now().add(Duration(days: 365 * 100)),
+                );
+                if (picked != null && picked != DateTime.now()) print(picked);
+                setState(() {
+                  formattedDate = DateFormat('MMMM dd,yyyy').format(picked!);
+                  endDate = picked;
+                });
+              },
+              child: Text(formattedDate),
+            )
+          ]),
+        ),
+        Flexible(
+            child: DropdownButtonHideUnderline(
+          child: DropdownButton<int>(
+            hint: Text(startTimeMessage),
+            onChanged: (int? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  startTimeMessage = listOfTuples
+                      .firstWhere((item) => item['value'] == newValue)['name'];
+                  startTime = newValue;
+                  endlistOfTuplesNotifier.value = [];
+                  if (endTimeMessage != "Select End Time") {
+                    if (startTime > endTime!) {
+                      endTime = null;
+                      endTimeMessage = "Select End Time";
+                    }
+                  }
+                  addEndStartMap();
+                });
+              }
+            },
+            items: listOfTuples.map((item) {
+              int hour = int.parse(item['value'].toString());
+              return DropdownMenuItem<int>(
+                value: hour,
+                child: Text('${item['name']}'),
+              );
+            }).toList(),
+          ),
+        )),
         SizedBox(height: 20),
         ValueListenableBuilder<List<Map<String, dynamic>>>(
           valueListenable: endlistOfTuplesNotifier,
@@ -971,13 +982,14 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
           },
         ),
       ]),
+      Container(height: 20),
+      Text("Select recurring days"),
       Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(10.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Expanded(
-              // Ensure Expanded is a direct child of Row
               child: ListTile(
                   title: const Text('Monday'),
                   leading: Checkbox(
@@ -989,7 +1001,6 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
                       })),
             ),
             Expanded(
-              // Ensure Expanded is a direct child of Row
               child: ListTile(
                 title: const Text('Tuesday'),
                 leading: Checkbox(
@@ -1002,7 +1013,6 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
               ),
             ),
             Expanded(
-              // Ensure Expanded is a direct child of Row
               child: ListTile(
                 title: const Text('Wednesday'),
                 leading: Checkbox(
@@ -1015,7 +1025,6 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
               ),
             ),
             Expanded(
-              // Ensure Expanded is a direct child of Row
               child: ListTile(
                 title: const Text('Thursday'),
                 leading: Checkbox(
@@ -1028,7 +1037,6 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
               ),
             ),
             Expanded(
-              // Ensure Expanded is a direct child of Row
               child: ListTile(
                 title: const Text('Friday'),
                 leading: Checkbox(
@@ -1041,7 +1049,6 @@ class RoomSelectionWidgetState extends State<ReservationModal> {
               ),
             ),
             Expanded(
-              // Ensure Expanded is a direct child of Row
               child: ListTile(
                 title: const Text('Saturday'),
                 leading: Checkbox(

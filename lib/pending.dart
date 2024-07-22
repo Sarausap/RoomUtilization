@@ -10,7 +10,7 @@ class PendingModal extends StatelessWidget {
       builder:
           (BuildContext context, AsyncSnapshot<List<Reservation>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Container();
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {

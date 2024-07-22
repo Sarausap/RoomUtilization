@@ -26,7 +26,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Map_Display());
+    return const MaterialApp(home: Map_Display());
   }
 }
 
@@ -100,21 +100,34 @@ class _Map_DisplayState extends State<Map_Display> {
         children: <Widget>[
           Expanded(
               child: Container(
-                  color: bgColor,
-                  child: Column(children: [
-                    Text("Current Floor : ${currentFloor}"),
-                    Image.memory(base64Decode(base64))
-                  ]))),
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      Text(
+                        "Current Floor : ${currentFloor}",
+                        style: const TextStyle(
+                            fontFamily: 'Satoshi', fontSize: 24),
+                      ),
+                      Container(
+                        width: 1000,
+                        height: 750,
+                        child: Image.memory(
+                          base64Decode(base64),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ))),
           Container(
-            color: bgColor,
+            color: Colors.white,
             width: 100,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                    height: 75,
-                    width: 75,
-                    decoration: BoxDecoration(
+                    height: 50,
+                    width: 50,
+                    decoration: const BoxDecoration(
                         color: primaryColor, shape: BoxShape.circle),
                     child: TextButton(
                       onPressed: () {
@@ -123,17 +136,19 @@ class _Map_DisplayState extends State<Map_Display> {
                           _fetchLatestMap(1);
                         });
                       },
-                      child: Text(
+                      child: const Text(
                         "1",
                         style: TextStyle(fontSize: 24, color: Colors.white),
                       ),
                     )),
                 Container(height: 50),
                 Container(
-                    height: 75,
-                    width: 75,
-                    decoration: BoxDecoration(
-                        color: primaryColor, shape: BoxShape.circle),
+                    height: 50,
+                    width: 50,
+                    decoration: const BoxDecoration(
+                      color: primaryColor,
+                      shape: BoxShape.circle,
+                    ),
                     child: TextButton(
                       onPressed: () {
                         print("button 2 clicked");
@@ -141,7 +156,7 @@ class _Map_DisplayState extends State<Map_Display> {
                           _fetchLatestMap(2);
                         });
                       },
-                      child: Text(
+                      child: const Text(
                         "2",
                         style: TextStyle(fontSize: 24, color: Colors.white),
                       ),
@@ -153,77 +168,104 @@ class _Map_DisplayState extends State<Map_Display> {
               width: 500,
               child: Expanded(
                   child: Container(
-                      color: outlineColor,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide.none,
+                          right: BorderSide.none,
+                          bottom: BorderSide.none,
+                          left: BorderSide(
+                            color: Colors.grey,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                        color: bgColor,
+                      ),
                       width: 500,
                       child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(children: [
-                              SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: Center(
-                                  child: FittedBox(
-                                    fit: BoxFit.contain,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                      ),
-                                      child: SimpleElevatedButtonWithIcon(
-                                        label: const Text(
-                                          'Reservation',
-                                          style: TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 255, 255, 255),
-                                              fontFamily: 'Satoshi'),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 20),
+                            child: Text(
+                              "ROOM RESERVATION",
+                              style: TextStyle(
+                                  fontFamily: 'Satoshi', fontSize: 36),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 100,
+                                  child: Center(
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                         ),
-                                        iconData: Icons.post_add_rounded,
-                                        iconColor:
-                                            Color.fromARGB(255, 255, 255, 255),
-                                        color: Color(0xff274c77),
-                                        onPressed: () {
-                                          showModalReservation(context);
-                                        },
+                                        child: SimpleElevatedButtonWithIcon(
+                                          label: const Text(
+                                            'Reservation',
+                                            style: TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 255, 255, 255),
+                                                fontFamily: 'Satoshi'),
+                                          ),
+                                          iconData: Icons.post_add_rounded,
+                                          iconColor: const Color.fromARGB(
+                                              255, 255, 255, 255),
+                                          color: const Color(0xff274c77),
+                                          onPressed: () {
+                                            showModalReservation(context);
+                                          },
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                width: 100,
-                                height: 100,
-                                child: Center(
-                                  child: FittedBox(
-                                    fit: BoxFit.contain,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                      ),
-                                      child: SimpleElevatedButtonWithIcon(
-                                        label: const Text(
-                                          'Pending',
-                                          style: TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 255, 255, 255),
-                                              fontFamily: 'Satoshi'),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 100,
+                                  child: Center(
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                         ),
-                                        iconData: Icons.post_add_rounded,
-                                        iconColor:
-                                            Color.fromARGB(255, 255, 255, 255),
-                                        color: Color(0xff274c77),
-                                        onPressed: () {
-                                          showModalPending(context);
-                                        },
+                                        child: SimpleElevatedButtonWithIcon(
+                                          label: const Text(
+                                            'Pending',
+                                            style: TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 255, 255, 255),
+                                                fontFamily: 'Satoshi'),
+                                          ),
+                                          iconData: Icons.post_add_rounded,
+                                          iconColor: const Color.fromARGB(
+                                              255, 255, 255, 255),
+                                          color: const Color(0xff274c77),
+                                          onPressed: () {
+                                            showModalPending(context);
+                                          },
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ]),
-                            Expanded(child: DynamicList())
-                          ])))),
+                            ],
+                          ),
+                          Expanded(child: DynamicList())
+                        ],
+                      )))),
         ],
       ),
     ));
@@ -239,36 +281,40 @@ class _DynamicListState extends State<DynamicList> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('rooms').snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('rooms')
+          .orderBy('room_name')
+          .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) return CircularProgressIndicator();
+        if (!snapshot.hasData) return Container();
         return ListView.builder(
-          padding: EdgeInsetsDirectional.only(top: 20, bottom: 20),
+          padding: const EdgeInsetsDirectional.only(top: 10, bottom: 20),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             DocumentSnapshot document = snapshot.data!.docs[index];
             return Material(
-                type: MaterialType.transparency,
-                child: ListTile(
-                  hoverColor: secondaryColor,
-                  minVerticalPadding: 10,
-                  title: Text(
-                    document['room_name'],
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontFamily: 'Satoshi',
-                    ),
+              type: MaterialType.transparency,
+              child: ListTile(
+                hoverColor: secondaryColor,
+                minVerticalPadding: 10,
+                title: Text(
+                  document['room_name'],
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontFamily: 'Satoshi',
                   ),
-                  onTap: () {
-                    print('Item tapped: ${document.id}');
-                    Provider.of<CalendarData>(context, listen: false)
-                        .updateCalendar(document['room_id']);
-                    showCalendarModal(
-                      context,
-                      document['room_name'],
-                    );
-                  },
-                ));
+                ),
+                onTap: () {
+                  print('Item tapped: ${document.id}');
+                  Provider.of<CalendarData>(context, listen: false)
+                      .updateCalendar(document['room_id']);
+                  showCalendarModal(
+                    context,
+                    document['room_name'],
+                  );
+                },
+              ),
+            );
           },
         );
       },
@@ -283,51 +329,65 @@ void showCalendarModal(BuildContext context, String roomName) {
     builder: (BuildContext context) {
       return AlertDialog(
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(roomName),
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: FutureBuilder<List<Semester?>>(
-                    future: Semester.fetchAllSemesters(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<List<Semester?>> snapshot) {
-                      String currentSemester = snapshot.data![0]?.id ?? '';
-                      return Material(
-                        child: DropdownButton<String>(
-                          underline: Container(),
-                          hint: Text(
-                            'Select a semester',
-                            style: TextStyle(fontFamily: 'Satoshi'),
-                          ),
-                          value: Provider.of<CalendarData>(context).semesterId,
-                          onChanged: (String? newValue) {
-                            print("New sem:${newValue}");
-                            currentSemester = newValue!;
-                            Provider.of<CalendarData>(context, listen: false)
-                                .updateSemester(newValue!);
-                          },
-                          items: snapshot.data!
-                              .where((semester) => semester != null)
-                              .map((Semester? semester) =>
-                                  DropdownMenuItem<String>(
-                                    value: semester?.id ?? '',
-                                    child: Text(semester?.semester_name ?? '',
-                                        style:
-                                            TextStyle(fontFamily: 'Satoshi')),
-                                  ))
-                              .toList(),
-                        ),
-                      );
-                    },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(0),
+                      child: FutureBuilder<List<Semester?>>(
+                        future: Semester.fetchAllSemesters(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<List<Semester?>> snapshot) {
+                          String currentSemester = snapshot.data![0]?.id ?? '';
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            return Material(
+                              child: DropdownButton<String>(
+                                underline: Container(),
+                                hint: const Text(
+                                  'Select a semester',
+                                  style: TextStyle(fontFamily: 'Satoshi'),
+                                ),
+                                value: Provider.of<CalendarData>(context)
+                                    .semesterId,
+                                onChanged: (String? newValue) {
+                                  print("New sem:${newValue}");
+                                  currentSemester = newValue!;
+                                  Provider.of<CalendarData>(context,
+                                          listen: false)
+                                      .updateSemester(newValue!);
+                                },
+                                items: snapshot.data!
+                                    .where((semester) => semester != null)
+                                    .map((Semester? semester) =>
+                                        DropdownMenuItem<String>(
+                                          value: semester?.id ?? '',
+                                          child: Text(
+                                              semester?.semester_name ?? '',
+                                              style: const TextStyle(
+                                                  fontFamily: 'Satoshi')),
+                                        ))
+                                    .toList(),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -345,7 +405,7 @@ void showCalendarModal(BuildContext context, String roomName) {
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('Close'),
+            child: const Text('Close'),
             onPressed: () {
               Navigator.of(context).pop();
             },
